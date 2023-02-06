@@ -12,3 +12,13 @@ web-build/
 
 # macOS
 .DS_Store
+
+*.env
+*.json
+*.lock
+*.d.ts
+*.svg
+*.local
+
+.svg/
+*.config.js
