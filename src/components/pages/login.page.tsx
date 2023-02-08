@@ -7,10 +7,11 @@ import LoginInput from '../input/loginInput';
 import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoadingButton as _LoadingButton } from '@mui/lab';
-import { toast } from 'react-toastify';
 // import { useLoginUserMutation } from '../redux/api/authApi';
-import GoogleLogo from '../../../assets/svg/google.svg';
+// import GoogleLogo from '../../../assets/svg/google.svg';
 import { getGoogleUrl } from '../auth/google/getGoogleUrl';
+import { useAppDispatch } from '../../redux/store';
+import { useAppSelector } from '../../redux/redux.hook';
 
 const LoadingButton = styled(_LoadingButton)`
   padding: 0.6rem 0;
@@ -43,13 +44,13 @@ const loginSchema = object({
 export type LoginInput = TypeOf<typeof loginSchema>;
 
 const LoginPage = () => {
+
+  const dispatch = useAppDispatch();
+  let { error, isLoggedIn } = useAppSelector((state) => state.data.auth);
+
   const methods = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
-
-  // ? API Login Mutation
-  // const [loginUser, { isLoading, isError, error, isSuccess }] =
-  //   useLoginUserMutation();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,25 +64,25 @@ const LoginPage = () => {
   } = methods;
 
   useEffect(() => {
-    if (isSuccess) {
-      toast.success('You successfully logged in');
+    if (isLoggedIn) {
+      // toast.success('You successfully logged in');
+      console.log('You successfully logged in')
       navigate(from);
     }
-    if (isError) {
+    if (error) {
       if (Array.isArray((error as any).data.error)) {
         (error as any).data.error.forEach((el: any) =>
-          toast.error(el.message, {
-            position: 'top-right',
-          })
+          // toast.error(el.message, {
+          //   position: 'top-right',
+          // })
+          console.log("error" + el)
         );
       } else {
-        toast.error((error as any).data.message, {
-          position: 'top-right',
-        });
+        console.log("error" )
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (isSubmitSuccessful) {
@@ -92,7 +93,7 @@ const LoginPage = () => {
 
   const onSubmitHandler: SubmitHandler<LoginInput> = (values) => {
     // ? Executing the loginUser Mutation
-    loginUser(values);
+    console.log(values);
   };
 
   return (
@@ -166,7 +167,7 @@ const LoginPage = () => {
               fullWidth
               disableElevation
               type='submit'
-              loading={isLoading}
+              loading={isLoggedIn}
             >
               Login
             </LoadingButton>
@@ -216,7 +217,7 @@ const LoginPage = () => {
             justifyContent='center'
             alignItems='center'
           >
-            <GoogleLogo style={{ height: '2rem' }} />
+            {/* <GoogleLogo style={{ height: '2rem' }} /> */}
             Google
           </MuiLink>
         </Box>
