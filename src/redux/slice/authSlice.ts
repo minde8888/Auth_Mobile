@@ -43,7 +43,7 @@ const authSlice = createSlice({
                 refreshToken: ''
             };
         },
-        changeToken: (state, { payload }: PayloadAction<AuthState>) => {
+        changeRefreshToken: (state, { payload }: PayloadAction<AuthState>) => {
             return {
                 ...state,
                 token: payload.token,
@@ -53,6 +53,6 @@ const authSlice = createSlice({
     }
 });
 
-export const { loginSuccess, loginFail, userLogout, changeToken, registerFail } = authSlice.actions;
+export const { loginSuccess, loginFail, userLogout, changeRefreshToken, registerFail } = authSlice.actions;
 
 export default authSlice.reducer;
