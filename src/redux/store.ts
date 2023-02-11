@@ -11,18 +11,15 @@ interface Action {
     payload: AuthState;
 }
 
-const localStorageMiddleware = ({ getState }: any) => {
+const storageMiddleware = ({ getState }: any) => {
     return (next: (arg0: any) => any) => (action: Action) => {
         const result = next(action);
-        localStorage.setItem('auth', JSON.stringify(getState()));
         return result;
     };
 };
 
 const reHydrateStore = () => {
-    if (localStorage.getItem('auth') !== null) {
-        return JSON.parse(localStorage.getItem('auth') || 'null');
-    }
+    return {}
 };
 
 export const store = configureStore({
@@ -33,7 +30,7 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware: GetDefaultMiddlewareFn) => [
         ...getDefaultMiddleware({
             immutableCheck: { warnAfter: 200 }
-        }).concat(localStorageMiddleware),
+        }).concat(storageMiddleware),
     ]
 });
 
