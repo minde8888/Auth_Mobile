@@ -6,11 +6,6 @@ interface AuthContextProps {
     setIsAuth: (isAuth: boolean) => void;
 }
 
-interface Props {
-    children: React.ReactElement;
-    name: string;
-}
-
 const AuthContext = createContext<AuthContextProps>({
     isAuth: false,
     setIsAuth: () => {},

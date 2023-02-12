@@ -3,20 +3,21 @@ import {
     TextInput as RNTextInput,
     TextInputProps as RNTextInputProps,
     Text,
-    StyleSheet
+    StyleSheet,
+    Platform,
+    Dimensions
 } from 'react-native';
-
-/* IMPORT HOOKS AND PROPS TYPES */
 import {
     useController,
     useFormContext,
-    UseControllerProps
+    UseControllerProps,
+    useWatch
 } from 'react-hook-form';
 
-/* EXTENDING PROPS TYPES TO INHERIT NAME AND RULES FROM USECONTROLLERPROPS */
 interface TextInputProps extends RNTextInputProps, UseControllerProps {
     label: string
-    defaultValue?: string //ADD DEFAULT VALUE TO PROPS
+    defaultValue?: string
+    errorMessage?: string | undefined
 }
 
 export const TextInput = (props: TextInputProps) => {
@@ -30,26 +31,23 @@ export const TextInput = (props: TextInputProps) => {
         console.error(msg)
         return null
     }
-
     return <ControlledInput {...props} />;
-
 };
 
 const ControlledInput = (props: TextInputProps) => {
-console.log(props);
-
     const {
         name,
         label,
         rules,
-        defaultValue,
+        errorMessage,
+        defaultValue = '',
         ...inputProps
     } = props;
 
     const { field } = useController({ name, rules, defaultValue });
 
     return (
-        <View >
+        <View style={styles.inputContainer}>
             {label && (<Text style={styles.label}>{label}</Text>)}
             <RNTextInput
                 style={styles.input}
@@ -62,17 +60,34 @@ console.log(props);
     );
 }
 
+const screenWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
+    formContainer: {
+        marginTop: 48,
+    },
+    inputContainer: {
+        marginTop: 16,
+        flexDirection: screenWidth >= 768 ? 'row' : 'column',
+    },
     label: {
+        fontWeight: 'bold',
         color: 'white',
-        margin: 20,
-        marginLeft: 0,
+        marginBottom: 8,
+        textAlign: 'left',
+        paddingRight: screenWidth >= 768 ? 16 : 0,
+        width: screenWidth >= 768 ? '25%' : '100%',
     },
     input: {
-        backgroundColor: 'white',
-        borderColor: 'none',
-        height: 40,
-        padding: 10,
-        borderRadius: 4,
-    }
+        backgroundColor: '#fff',
+        height: 56,
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        fontSize: Platform.select({
+            ios: 16,
+            android: 14,
+        }),
+        width: screenWidth >= 768 ? '50%' : '100%',
+        alignSelf: screenWidth >= 768 ? 'center' : 'flex-start',
+    },
 });
+
