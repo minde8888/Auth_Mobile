@@ -2,16 +2,20 @@ import { TextInput } from '../TextInput/TextInput';
 import { View, StyleSheet, Button, Text, Platform, Dimensions } from 'react-native';
 import { useForm, FormProvider, SubmitHandler, SubmitErrorHandler, FieldValues } from 'react-hook-form';
 import { useState } from 'react';
+import { useAppDispatch } from '../../redux/store';
+import { loginSuccess } from '../../redux/slice/authSlice';
 
 type FormErrors = { email?: string, password?: string };
 
 const LoginScreen = () => {
 
+    const dispatch = useAppDispatch();
     const [hasErrors, setErrors] = useState<FormErrors | undefined>(undefined);
     const [response, setResponse] = useState<undefined | { status: string }>(undefined);
     const { ...methods } = useForm();
 
     const onSubmit: SubmitHandler<FieldValues> = ((data) => {
+        // dispatch(loginSuccess({ token: user.token, refreshToken: user.refreshToken }));
         console.log(data);
         setErrors(undefined)
         setResponse({ status: 'success' });
@@ -85,8 +89,8 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: Platform.select({
-            ios: 24,
-            android: 20
+            ios: 34,
+            android: 30
         }),
         color: 'white'
     },
