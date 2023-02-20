@@ -1,61 +1,61 @@
-// import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestHeaders } from "axios";
+import { authHeader } from "./authHeader";
+import { store } from "../../redux/store";
+import {
+  AuthState,
+  changeRefreshToken,
+  userLogout,
+} from "../../redux/slice/authSlice";
+import createAuthRefreshInterceptor from "axios-auth-refresh";
 
-// export interface Response {
-//     $id: string;
-//     token: string;
-//     refreshToken: string;
-// }
+interface Response {
+  token: string;
+  refreshToken: string;
+  susses:boolean;
+}
 
-// interface Auth {
-//     isLoggedIn: boolean;
-//     token: string;
-//     refreshToken: string;
-// }
+const api = axios.create({    
+  baseURL: "https://localhost:60866/api/v1/",
+});
 
-// interface Token {
-//     data: {
-//         auth: Auth;
-//         user: User;
-//     };
-// }
+interface AxiosRequestConfig<T = any> {
+  headers: AxiosRequestHeaders;
+}
 
-// const api = axios.create({
-//     baseURL: 'https://localhost:44346/api/v1/'
-// });
+api.interceptors.request.use(
+  (config: AxiosRequestConfig<any>): AxiosRequestConfig<any> => {
+    if (!config) throw new Error(`Expected 'config' not to be undefined`);
+    const newHeader = {
+      ...(config.headers || {}),
+      ...authHeader(),
+    } as AxiosRequestHeaders;
+    config.headers = newHeader;
+    return config;
+  },
+  (error) => {
+    throw new Error("Header error" + error);
+  }
+);
 
-// api.interceptors.request.use(
-//     (config: AxiosRequestConfig): AxiosRequestConfig => {
-//         if (!config) throw new Error(`Expected 'config' not to be undefined`);
-//         if (!config?.headers) throw new Error(`Expected 'config.headers' not to be undefined`);
-//         const newHeader = { ...config.headers, ...authHeader() };
-//         config.headers = newHeader;
-//         return config;
-//     },
-//     (error) => {
-//         throw new Error('Heder error' + error);
-//     }
-// );
+const refreshAuthLogic = async (failedRequest: any): Promise<void> => {
+  try {
+    const auth: AuthState = store.getState().data.auth;
 
-// const refreshAuthLogic = async (failedRequest: any): Promise<void> => {
-//     try {
-//         const auth: Token = JSON.parse(localStorage.getItem('auth') || 'false');
-//         const response = await api.post<Response>('auth/RefreshToken/', {
-//             token: auth.data.auth.token,
-//             refreshToken: auth.data.auth.refreshToken
-//         });
+    const response = await api.post<Response>("auth/RefreshToken/", {
+      token: auth.token,
+      refreshToken: auth.refreshToken,
+    });
 
-//         const { token, refreshToken } = response.data;
-//         if (!(token.length !== 0 || refreshToken.length !== 0)) throw Error('no token found');
-//         auth.data.auth.refreshToken = refreshToken;
-//         auth.data.auth.token = token;
-//         store.dispatch(changeRefreshToken({ token, refreshToken }));
-//         localStorage.setItem('auth', JSON.stringify(auth));
-//     } catch (error) {
-//         localStorage.clear();
-//         throw error;
-//     }
-// };
+    const { token, refreshToken } = response.data;
+    if (!(token.length !== 0 || refreshToken.length !== 0))
+      throw Error("no token found");
+    store.dispatch(changeRefreshToken({ token, refreshToken }));
+  } catch (error) {
+    store.dispatch(userLogout());
+    throw error;
+  }
+};
 
-// createAuthRefreshInterceptor(api, refreshAuthLogic);
+createAuthRefreshInterceptor(api, refreshAuthLogic);
 
-// export default api;
+export default api;

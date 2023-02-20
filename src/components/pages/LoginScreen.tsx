@@ -1,9 +1,10 @@
 import { TextInput } from '../TextInput/TextInput';
-import { View, StyleSheet, Button, Text, Platform, Dimensions } from 'react-native';
+import { View, StyleSheet, Button, Text, Platform, Dimensions, Alert } from 'react-native';
 import { useForm, FormProvider, SubmitHandler, SubmitErrorHandler, FieldValues } from 'react-hook-form';
 import { useState } from 'react';
 import { useAppDispatch } from '../../redux/store';
 import { loginSuccess } from '../../redux/slice/authSlice';
+import { login } from '../../services/authServices/authServices';
 
 type FormErrors = { email?: string, password?: string };
 
@@ -11,15 +12,19 @@ const LoginScreen = () => {
 
     const dispatch = useAppDispatch();
     const [hasErrors, setErrors] = useState<FormErrors | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState(false);
     const [response, setResponse] = useState<undefined | { status: string }>(undefined);
     const { ...methods } = useForm();
 
-    const onSubmit: SubmitHandler<FieldValues> = ((data) => {
-        // dispatch(loginSuccess({ token: user.token, refreshToken: user.refreshToken }));
-        console.log(data);
-        setErrors(undefined)
-        setResponse({ status: 'success' });
-        methods.reset();
+    const onSubmit: SubmitHandler<FieldValues> = (async (data) => {
+        const auth = await login(data.email, data.password);
+        if (auth && auth.error && auth.error.length !== 0) {
+            setErrorMessage(true);
+        } else {
+            setErrors(undefined);
+            setResponse({ status: 'success' });
+            methods.reset();
+        }
     });
 
     const onError: SubmitErrorHandler<FieldValues> = (errors, e) => {
@@ -80,6 +85,8 @@ const LoginScreen = () => {
         </View>
     );
 };
+
+
 
 const screenWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
