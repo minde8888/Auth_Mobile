@@ -9,7 +9,7 @@ import RegisterError from "../handleServerError/RegisterError";
 const AUTH_URL = "Auth/";
 
 interface Response {
-  error: string[];
+  errors: string;
   token: string;
   refreshToken: string;
   susses: boolean;
@@ -26,14 +26,20 @@ interface User {
   imageName?: string;
 }
 
-export const login = async (email: string, password: string): Promise<Response> => {
+export const login = async (
+  email: string,
+  password: string
+): Promise<Response> => {
   try {
     const { data } = await api.post<Response>(AUTH_URL + "Login", {
       email: email,
       password: password,
     });
-    if (!(Object.keys(data).length !== 0)) throw Error("no user found");
-    return data;
+
+    if (!(Object.keys(data).length !== 0)) {
+      throw Error("no user found");
+    }
+    return { ...data, errors: data.errors ? data.errors[0] : "" };
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       const serverError = error as AxiosError<ServerError>;

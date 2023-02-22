@@ -6,36 +6,45 @@ import { useAppDispatch } from '../../redux/store';
 import { loginSuccess } from '../../redux/slice/authSlice';
 import { login } from '../../services/authServices/authServices';
 
-type FormErrors = { email?: string, password?: string };
+type FormErrors = { email?: string, password?: string, errors?: string };
 
 const LoginScreen = () => {
 
     const dispatch = useAppDispatch();
-    const [hasErrors, setErrors] = useState<FormErrors | undefined>(undefined);
-    const [errorMessage, setErrorMessage] = useState(false);
-    const [response, setResponse] = useState<undefined | { status: string }>(undefined);
-    const { ...methods } = useForm();
+    const [formErrors, setFormErrors] = useState<FormErrors>({});
+    const [response, setResponse] = useState<undefined | { status: string }>();
+    const methods = useForm<FieldValues>({});
 
-    const onSubmit: SubmitHandler<FieldValues> = (async (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = async (data) => {
         const auth = await login(data.email, data.password);
-        if (auth && auth.error && auth.error.length !== 0) {
-            setErrorMessage(true);
+        if (auth.errors) {
+            const errorMsg: FormErrors = {
+                errors: auth.errors
+            };
+            setFormErrors(errorMsg);
         } else {
-            setErrors(undefined);
+            setFormErrors({});
             setResponse({ status: 'success' });
             methods.reset();
         }
-    });
+    };
 
-    const onError: SubmitErrorHandler<FieldValues> = (errors, e) => {
+    const onError: SubmitErrorHandler<FieldValues> = (errors) => {
         const errorMsg: FormErrors = {
             email: typeof errors.email?.message === 'string' ? errors.email.message : undefined,
             password: typeof errors.password?.message === 'string' ? errors.password.message : undefined
         };
-        setErrors(errorMsg);
+        setFormErrors(errorMsg);
     };
 
     const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
+
+    const renderError = (fieldName: keyof FormErrors) => {
+        if (formErrors[fieldName]) {
+            return <Text style={styles.errorMessage}>{formErrors[fieldName]}</Text>;
+        }
+        return null;
+    };
 
     return (
         <View style={styles.container}>
@@ -45,6 +54,7 @@ const LoginScreen = () => {
                 </View>
             </View>
             <FormProvider {...methods}>
+                {formErrors.errors && <Text style={styles.errorMessage}>{formErrors.errors}</Text>}
                 <TextInput
                     name="email"
                     label="Email"
@@ -58,7 +68,7 @@ const LoginScreen = () => {
                         }
                     }}
                 />
-                {hasErrors?.email && <Text style={styles.errorMessage}>{hasErrors.email}</Text>}
+                {renderError('email')}
                 <TextInput
                     name="password"
                     label="Password"
@@ -72,7 +82,7 @@ const LoginScreen = () => {
                         }
                     }}
                 />
-                {hasErrors?.password && <Text style={styles.errorMessage}>{hasErrors.password}</Text>}
+                {renderError('password')}
             </FormProvider>
             <View style={styles.button}>
                 <Button
